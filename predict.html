@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!--
+        Give me six input fields for the user to enter their data. The input fields should be labeled as follows:
+        x_1, x_2, x_3, y_1, y_2, y_3.
+        Each input field should have a placeholder that indicates the expected input format.
+        For example, x_1 should have a placeholder "Enter value for x_1", and so on.
+        the six fields should belong to the same div.
+        -->
+    <div class="input-fields">
+        <label for="x_1">x_1:</label>
+        <input type="text" id="x_1" name="x_1" placeholder="Enter value for x_1"><br><br>
+
+        <label for="x_2">x_2:</label>
+        <input type="text" id="x_2" name="x_2" placeholder="Enter value for x_2"><br><br>
+
+        <label for="x_3">x_3:</label>
+        <input type="text" id="x_3" name="x_3" placeholder="Enter value for x_3"><br><br>
+
+        <label for="y_1">y_1:</label>
+        <input type="text" id="y_1" name="y_1" placeholder="Enter value for y_1"><br><br>
+
+        <label for="y_2">y_2:</label>
+        <input type="text" id="y_2" name="y_2" placeholder="Enter value for y_2"><br><br>
+
+        <label for="y_3">y_3:</label>
+        <input type="text" id="y_3" name="y_3" placeholder="Enter value for y_3"><br><br>
+    </div>
+    <button id="submit">Submit</button>
+    <div id="result"></div>
+</body>
+<script>
+    // Now get all the values from the input fields and save them into X[] and Y[] respectively once the button is clicked.
+    var X = [], Y = [];
+
+    document.getElementById("submit").addEventListener("click", function () {
+        X.push(parseFloat(document.getElementById("x_1").value));
+        X.push(parseFloat(document.getElementById("x_2").value));
+        X.push(parseFloat(document.getElementById("x_3").value));
+        Y.push(parseFloat(document.getElementById("y_1").value));
+        Y.push(parseFloat(document.getElementById("y_2").value));
+        Y.push(parseFloat(document.getElementById("y_3").value));
+
+        var n = X.length;
+        var sum_of_x = 0, sum_of_y = 0;
+        for (i = 0; i < n; i++) {
+            sum_of_x += X[i];
+            sum_of_y += Y[i];
+        }
+
+        var sum_of_xy = 0;
+        var sum_of_x_square = 0;
+        for (i = 0; i < n; i++) {
+            sum_of_xy += X[i] * Y[i];
+            sum_of_x_square += X[i] * X[i];
+        }
+
+        var slope = (n * sum_of_xy - sum_of_x * sum_of_y) / (n * sum_of_x_square - sum_of_x * sum_of_x);
+        var intercept = (sum_of_y - slope * sum_of_x) / n;
+
+        function predict(x) {
+            return slope * x + intercept;
+        }
+
+        var residuals = 0;
+        for (i = 0; i < n; i++) {
+            residuals += Math.pow(Y[i] - predict(X[i]), 2);
+        }
+        var dof = n - 2 > 1 ? n - 2 : 1; // degrees of freedom
+        var standard_error = Math.sqrt(residuals / dof);
+
+        // 68% confidence level
+        var t_values_68 = 1.0;
+        var t_critical = dof > 4 ? 1.0 : dof;
+
+// add realistic error to the predicted value
+// note: the realistic error is a random number between -1 and 1 times the standard error
+// and: must guarantee that both positive and negative errors are present.
+        function add_realistic_error(value) {
+            var error = (Math.random() - 0.5) * 2 * standard_error; // Random error between -1 and 1 times the standard error
+            return value + error;
+        }
+
+        var results = []
+        var x = 0;
+        for (var i = 1; i <= Math.ceil(X[2]); i++) {
+            // x += 1 + 0.03 * Math.random(); // Random x value between 0 and 10
+            var predicted_value = predict(i);
+            var final_value = add_realistic_error(predicted_value);
+            results.push({ y: final_value });
+        }
+
+        // generate a csv blob from the results array
+        // var csvContent = "data:text/csv;charset=utf-8," + results.map(e => e.x + "," + e.y).join("\n");
+        // the csv blob's x shall keep 4 digits after the decimal point and y shall keep 2 digits after the decimal point
+        // var csvContent = "data:text/csv;charset=utf-8," + results.map(e => e.x.toFixed(4) + "," + e.y.toFixed(2)).join("\n");
+        var csvContent = "data:text/csv;charset=utf-8," + results.map(e => e.y.toFixed(4)).join("\n");
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "predictions.csv");
+        document.body.appendChild(link); // Required for FF
+        link.click(); // This will download the data file named "predictions.csv" with the results.
+
+        // Display the values in the result div
+        // document.getElementById("result").innerHTML = "X: " + X + "<br>Y: " + Y;
+    });
+
+
+
+</script>
+
+</html>
